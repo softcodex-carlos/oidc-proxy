@@ -1,29 +1,34 @@
-# Softcodex OIDC Proxy for Microsoft 365
+# Symfony Project with Softcodex OIDC Proxy for Microsoft 365
 
-PHP library to handle OpenID Connect (OIDC) authentication with Microsoft 365 (M365) for applications using a single tenant. This library simplifies the authentication flow by providing a reusable component to initiate the OIDC flow and handle the callback from Microsoft.
+The `softcodex/oidc-proxy` library to handle OpenID Connect (OIDC) authentication with Microsoft 365 (M365) for a single tenant. The library simplifies the authentication flow, allowing users to log in via Microsoft and retrieve user data for session management.
 
 ## Features
-- Initiates OIDC authentication with Microsoft 365.
-- Handles callback processing to retrieve access tokens and user data.
-- Supports dynamic redirect URIs for different environments (local, production, etc.).
-- Designed for a single M365 tenant, with configurable `clientId`, `clientSecret`, and `redirectUri`.
-- Compatible with Symfony or any PHP project.
+- OIDC authentication with Microsoft 365 using `softcodex/oidc-proxy`.
+- Automatic user creation and session management in Symfony.
+- Configurable for local and production environments.
 
 ## Requirements
 - PHP 7.4 or higher
-- [league/oauth2-client](https://github.com/thephpleague/oauth2-client) (^2.6)
+- Composer
 - A registered application in the Azure Portal with OIDC configuration
+- Dependencies:
+  - `softcodex/oidc-proxy` (^1.0.0)
+  - `league/oauth2-client` (^2.8)
 
 ## Installation
-Add this to your composer.json:
-"repositories": [
+
+### 1. Install the OIDC Proxy Library
+Add the `softcodex/oidc-proxy` library to your project via Composer. Since the package is hosted on a GitHub repository, configure the repository in `composer.json`:
+
+```json
+{
+    "require": {
+        "softcodex/oidc-proxy": "^1.0.0"
+    },
+    "repositories": [
         {
             "type": "vcs",
             "url": "https://github.com/softcodex-carlos/oidc-proxy.git"
         }
-    ],
-    
-Install the library via Composer:
-
-```bash
-composer require softcodex/oidc-proxy
+    ]
+}
