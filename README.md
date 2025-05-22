@@ -32,20 +32,20 @@ json
     ]
 }
 
- ### 2. Save `composer.json` and Create a Version Tag:
+### 2. Save `composer.json` and Create a Version Tag:
 
-git clone https://github.com/softcodex-carlos/oidc-proxy.git
-cd oidc-proxy
-git tag 1.0.0
-git push origin 1.0.0
+`git clone https://github.com/softcodex-carlos/oidc-proxy.git```
+```cd oidc-proxy```
+```git tag 1.0.0```
+```git push origin 1.0.0```
 
- ### 3. Run:
+### 3. Run:
 
-composer update softcodex/oidc-proxy
+`composer update softcodex/oidc-proxy`
 
- ### 4. Configure Environment Variables
- Create this credentials in your .env:
- M365_CLIENT_ID=your-client-id
+### 4. Configure Environment Variables
+Create this credentials in your .env:
+```M365_CLIENT_ID=your-client-id
 M365_CLIENT_SECRET=your-client-secret
 M365_TENANT_ID=your-tenant-id
 APP_URL=http://localhost:300
