@@ -15,8 +15,8 @@ class Config
     public function __construct(
         string $clientId,
         string $clientSecret,
+        string $tenantId,
         string $redirectUri,
-        string $tenantId = '13742973-0efb-4619-96a6-49f1797957e3',
         array $scopes = ['openid', 'profile', 'email', 'https://graph.microsoft.com/User.Read']
     ) {
         $this->clientId = $clientId;
