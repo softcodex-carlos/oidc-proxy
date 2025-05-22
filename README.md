@@ -19,7 +19,7 @@ The `softcodex/oidc-proxy` library handles OpenID Connect (OIDC) authentication 
 ### 1. Install the OIDC Proxy Library
 Add the `softcodex/oidc-proxy` library via Composer. Since the package is hosted on GitHub, configure the repository in `composer.json`:
 
-```json
+json
 {
     "require": {
         "softcodex/oidc-proxy": "^1.0.0"
@@ -30,18 +30,18 @@ Add the `softcodex/oidc-proxy` library via Composer. Since the package is hosted
             "url": "https://github.com/softcodex-carlos/oidc-proxy.git"
         }
     ]
-} ```
+}
 
  ### 2. Save `composer.json` and Create a Version Tag:
 
- ```git clone https://github.com/softcodex-carlos/oidc-proxy.git
+git clone https://github.com/softcodex-carlos/oidc-proxy.git
 cd oidc-proxy
 git tag 1.0.0
 git push origin 1.0.0
 
  ### 3. Run:
 
- ```composer update softcodex/oidc-proxy
+composer update softcodex/oidc-proxy
 
  ### 4. Configure Environment Variables
  Create this credentials in your .env:
