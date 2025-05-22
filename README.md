@@ -34,10 +34,10 @@ json
 
 ### 2. Save `composer.json` and Create a Version Tag:
 
-`git clone https://github.com/softcodex-carlos/oidc-proxy.git```
-```cd oidc-proxy```
-```git tag 1.0.0```
-```git push origin 1.0.0```
+```git clone https://github.com/softcodex-carlos/oidc-proxy.git
+cd oidc-proxy
+git tag 1.0.0
+git push origin 1.0.0```
 
 ### 3. Run:
 
