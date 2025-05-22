@@ -15,7 +15,14 @@ PHP library to handle OpenID Connect (OIDC) authentication with Microsoft 365 (M
 - A registered application in the Azure Portal with OIDC configuration
 
 ## Installation
-
+Add this to your composer.json:
+"repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/softcodex-carlos/oidc-proxy.git"
+        }
+    ],
+    
 Install the library via Composer:
 
 ```bash
