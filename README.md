@@ -1,4 +1,4 @@
-# PHP Project with Softcodex OIDC Proxy for Microsoft 365
+# Softcodex OIDC Proxy for Microsoft 365
 
 The `softcodex/oidc-proxy` library handles OpenID Connect (OIDC) authentication with Microsoft 365 (M365) for a single tenant. The library simplifies authentication for any PHP project, including Symfony or plain PHP applications.
 
