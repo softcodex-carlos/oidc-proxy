@@ -17,16 +17,19 @@ class Config
         string $clientSecret,
         string $tenantId,
         string $redirectUri,
-        array $scopes = ['openid', 'profile', 'email', 'https://graph.microsoft.com/User.Read']
+        array $scopes = ['openid', 'profile', 'email', 'https://graph.microsoft.com/User.Read'],
+        string $urlAuthorize = null,
+        string $urlAccessToken = null,
+        string $urlResourceOwnerDetails = 'https://graph.microsoft.com/v1.0/me'
     ) {
         $this->clientId = $clientId;
         $this->clientSecret = $clientSecret;
         $this->tenantId = $tenantId;
         $this->redirectUri = $redirectUri;
         $this->scopes = $scopes;
-        $this->urlAuthorize = sprintf('https://login.microsoftonline.com/%s/oauth2/v2.0/authorize', $tenantId);
-        $this->urlAccessToken = sprintf('https://login.microsoftonline.com/%s/oauth2/v2.0/token', $tenantId);
-        $this->urlResourceOwnerDetails = 'https://graph.microsoft.com/v1.0/me';
+        $this->urlAuthorize = $urlAuthorize ?? sprintf('https://login.microsoftonline.com/%s/oauth2/v2.0/authorize', $tenantId);
+        $this->urlAccessToken = $urlAccessToken ?? sprintf('https://login.microsoftonline.com/%s/oauth2/v2.0/token', $tenantId);
+        $this->urlResourceOwnerDetails = $urlResourceOwnerDetails;
     }
 
     public function getClientId(): string { return $this->clientId; }
