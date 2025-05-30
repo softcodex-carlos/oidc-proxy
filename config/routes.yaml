@@ -1,0 +1,8 @@
+oidc_sso:
+  path: /oidc/sso
+  controller: App\Controller\OidcController::sso
+  methods: [POST]
+
+oidc_callback:
+  path: /oidc/callback
+  controller: App\Controller\OidcController::callback

@@ -1,21 +1,17 @@
 {
-    "name": "softcodex/oidc-proxy",
-    "description": "A OIDC proxy for Microsoft 365 authentication",
-    "type": "library",
-    "require": {
-        "php": ">=7.4",
-        "league/oauth2-client": "^2.6"
-    },
-    "autoload": {
-        "psr-4": {
-            "OidcProxy\\": "src/"
-        }
-    },
-    "license": "MIT",
-    "authors": [
-        {
-            "name": "Carlos",
-            "email": "carlos@softcodex.ch"
-        }
-    ]
+  "name": "softcodex/oidc-proxy",
+  "description": "OIDC Proxy for M365 login",
+  "require": {
+    "php": ">=7.4",
+    "symfony/http-foundation": "^5.4 || ^6.0",
+    "symfony/routing": "^5.4 || ^6.0",
+    "symfony/http-kernel": "^5.4 || ^6.0",
+    "symfony/dependency-injection": "^5.4 || ^6.0",
+    "league/oauth2-client": "^2.6"
+  },
+  "autoload": {
+    "psr-4": {
+      "OidcProxy\\": "src/"
+    }
+  }
 }
