@@ -1,0 +1,70 @@
+Request matched: /oidc/sso
+Controller resolved: Array
+(
+    [0] => App\Controller\OidcController Object
+        (
+        )
+
+    [1] => sso
+)
+
+Request matched: /oidc/sso
+Controller resolved: Array
+(
+    [0] => App\Controller\OidcController Object
+        (
+        )
+
+    [1] => sso
+)
+
+Request matched: /oidc/callback
+Controller resolved: Array
+(
+    [0] => App\Controller\OidcController Object
+        (
+        )
+
+    [1] => callback
+)
+
+Request matched: /oidc/sso
+Controller resolved: Array
+(
+    [0] => App\Controller\OidcController Object
+        (
+        )
+
+    [1] => sso
+)
+
+Request matched: /oidc/callback
+Controller resolved: Array
+(
+    [0] => App\Controller\OidcController Object
+        (
+        )
+
+    [1] => callback
+)
+
+Request matched: /oidc/sso
+Controller resolved: Array
+(
+    [0] => App\Controller\OidcController Object
+        (
+        )
+
+    [1] => sso
+)
+
+Request matched: /oidc/callback
+Controller resolved: Array
+(
+    [0] => App\Controller\OidcController Object
+        (
+        )
+
+    [1] => callback
+)
+
