@@ -117,3 +117,11 @@ Index.php started: 2025-06-04 08:41:35
 Autoload included: 2025-06-04 08:41:35
 Request created: /oidc/callback
 Routes loaded: 2025-06-04 08:41:35
+Index.php started: 2025-06-04 09:05:08
+Autoload included: 2025-06-04 09:05:08
+Request created: /oidc/sso
+Routes loaded: 2025-06-04 09:05:09
+Index.php started: 2025-06-04 09:05:10
+Autoload included: 2025-06-04 09:05:10
+Request created: /oidc/callback
+Routes loaded: 2025-06-04 09:05:10
