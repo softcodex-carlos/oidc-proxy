@@ -3,11 +3,11 @@
         'name' => 'softcodex/oidc-proxy',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => 'a007557f49f8fd3abaad03ed5311660591b02746',
+        'reference' => 'f7ae08556b3c24a4d4f08b7fa07a5a0cbcf0998e',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
-        'dev' => false,
+        'dev' => true,
     ),
     'versions' => array(
         'guzzlehttp/guzzle' => array(
@@ -169,7 +169,7 @@
         'softcodex/oidc-proxy' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => 'a007557f49f8fd3abaad03ed5311660591b02746',
+            'reference' => 'f7ae08556b3c24a4d4f08b7fa07a5a0cbcf0998e',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -223,6 +223,15 @@
             'reference' => '63afe740e99a13ba87ec199bb07bbdee937a5b62',
             'type' => 'library',
             'install_path' => __DIR__ . '/../symfony/deprecation-contracts',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'symfony/dotenv' => array(
+            'pretty_version' => 'v7.3.0',
+            'version' => '7.3.0.0',
+            'reference' => '28347a897771d0c28e99b75166dd2689099f3045',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../symfony/dotenv',
             'aliases' => array(),
             'dev_requirement' => false,
         ),

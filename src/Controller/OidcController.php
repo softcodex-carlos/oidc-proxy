@@ -15,19 +15,21 @@ class OidcController extends AbstractController
     #[Route('/oidc/sso', name: 'oidc_sso', methods: ['POST'])]
     public function sso(Request $request): Response
     {
-        $clientId = $request->request->get('client_id');
-        $clientSecret = $request->request->get('client_secret');
+        $clientId = $_ENV['CLIENT_ID'];
+        $clientSecret = $_ENV['CLIENT_SECRET'];
         $tenantId = $request->request->get('tenant_id');
         $origin = $request->request->get('origin');
-        $allowedEmailDomains = $request->request->get('allowed_email_domains', ''); // Dominios permitidos
-        $excludedEmailDomains = $request->request->get('excluded_email_domains', ''); // Dominios excluidos
-        $mode = $request->request->get('mode', 'proxy');
+        $allowedEmailDomains = $request->request->get('allowed_email_domains', '');
+        $excludedEmailDomains = $request->request->get('excluded_email_domains', '');
 
-        if (!$clientId || !$clientSecret || !$tenantId || !$origin) {
+        if (!$tenantId || !$origin) {
             return new Response('Missing parameters', 400);
         }
 
-        // Validar que el origin sea una URL válida
+        if (!$clientId || !$clientSecret) {
+            return new Response('Invalid configuration in proxy', 500);
+        }
+
         if (!filter_var($origin, FILTER_VALIDATE_URL)) {
             return new Response('Invalid origin URL', 400);
         }
@@ -38,7 +40,6 @@ class OidcController extends AbstractController
         $proxy = new OidcProxy($config);
         $authData = $proxy->getAuthorizationUrl();
 
-        // Almacenar datos en la sesión
         $request->getSession()->set('oauth2_state', $authData['state']);
         $request->getSession()->set('oauth2_origin', $origin);
         $request->getSession()->set('client_config', [
@@ -84,7 +85,6 @@ class OidcController extends AbstractController
         try {
             $result = $proxy->handleCallback($code, $state, $storedState);
 
-            // Obtener email y displayName
             $email = $result['userData']['mail'] ?? $result['userData']['userPrincipalName'] ?? '';
             $displayName = $result['userData']['displayName'] ?? ucfirst(strtolower(explode('@', $email)[0]));
 
@@ -92,16 +92,13 @@ class OidcController extends AbstractController
                 return new Response('Missing email in user data', 400);
             }
 
-            // Extraer el dominio del email
             $emailDomain = strtolower(substr(strrchr($email, '@'), 1));
 
-            // Validar dominios excluidos
             $excludedDomains = array_filter(array_map('trim', explode(',', $clientConfig['excluded_email_domains'] ?? '')));
             if (!empty($excludedDomains) && in_array($emailDomain, $excludedDomains)) {
                 return new Response('Email domain not allowed', 403);
             }
 
-            // Validar dominios permitidos
             $allowedDomains = array_filter(array_map('trim', explode(',', $clientConfig['allowed_email_domains'] ?? '')));
             if (!empty($allowedDomains) && !in_array($emailDomain, $allowedDomains)) {
                 return new Response('Email domain not allowed', 403);
@@ -113,7 +110,6 @@ class OidcController extends AbstractController
                 'displayName' => $displayName,
             ]);
 
-            // Limpiar la sesión
             $request->getSession()->remove('oauth2_state');
             $request->getSession()->remove('oauth2_origin');
             $request->getSession()->remove('client_config');

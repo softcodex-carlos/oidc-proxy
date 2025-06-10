@@ -10,7 +10,8 @@
         "symfony/config": "^7.2",
         "symfony/framework-bundle": "^7.2",
         "symfony/dependency-injection": "^7.2",
-        "league/oauth2-client": "^2.6"
+        "league/oauth2-client": "^2.6",
+        "symfony/dotenv": "^7.3"
     },
     "autoload": {
         "psr-4": {

@@ -13,6 +13,10 @@ use Symfony\Component\Config\FileLocator;
 use Symfony\Component\HttpKernel\Controller\ControllerResolver;
 use Symfony\Component\HttpKernel\Controller\ArgumentResolver;
 use Symfony\Component\HttpFoundation\Session\Session;
+use Symfony\Component\Dotenv\Dotenv;
+
+$dotenv = new Dotenv();
+$dotenv->load(dirname(__DIR__) . '/.env');
 
 $request = Request::createFromGlobals();
 file_put_contents(__DIR__ . '/../logs/early.log', 'Request created: ' . $request->getPathInfo() . PHP_EOL, FILE_APPEND);
