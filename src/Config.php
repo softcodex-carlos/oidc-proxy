@@ -13,10 +13,10 @@ class Config
     private string $urlResourceOwnerDetails;
 
     public function __construct(
-        string $clientId,
-        string $clientSecret,
-        string $tenantId,
-        string $redirectUri,
+        string $clientId = null,
+        string $clientSecret = null,
+        string $tenantId = null,
+        string $redirectUri = null,
         array $scopes = ['openid', 'profile', 'email', 'https://graph.microsoft.com/User.Read'],
         string $urlAuthorize = null,
         string $urlAccessToken = null,

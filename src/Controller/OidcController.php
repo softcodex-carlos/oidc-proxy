@@ -18,9 +18,11 @@ class OidcController extends AbstractController
         $clientId = $_ENV['CLIENT_ID'];
         $clientSecret = $_ENV['CLIENT_SECRET'];
         $tenantId = $request->request->get('tenant_id');
+        $authorizationBaseUrl = $request->request->get('authorization_base_url');
         $origin = $request->request->get('origin');
         $allowedEmailDomains = $request->request->get('allowed_email_domains', '');
         $excludedEmailDomains = $request->request->get('excluded_email_domains', '');
+        $allowedAuthUrlPrefix = $_ENV['OIDC_ALLOWED_AUTH_URL_PREFIX'];
 
         if (!$tenantId || !$origin) {
             return new Response('Missing parameters', 400);
@@ -34,6 +36,12 @@ class OidcController extends AbstractController
             return new Response('Invalid origin URL', 400);
         }
 
+        $authUrlWithClientId = $authorizationBaseUrl . urlencode($clientId);
+
+        if (!str_starts_with($authorizationBaseUrl, $allowedAuthUrlPrefix)) {
+            return new Response('Invalid authorization URL', 400);
+        }
+
         $redirectUri = $request->getSchemeAndHttpHost() . '/oidc/callback';
 
         $config = new Config($clientId, $clientSecret, $tenantId, $redirectUri);
@@ -45,12 +53,11 @@ class OidcController extends AbstractController
         $request->getSession()->set('client_config', [
             'client_id' => $clientId,
             'client_secret' => $clientSecret,
-            'tenant_id' => $tenantId,
             'allowed_email_domains' => $allowedEmailDomains,
             'excluded_email_domains' => $excludedEmailDomains,
         ]);
 
-        return new RedirectResponse($authData['url']);
+        return new RedirectResponse($authUrlWithClientId);
     }
 
     #[Route('/oidc/callback', name: 'oidc_callback', methods: ['GET'])]
