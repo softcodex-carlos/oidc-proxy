@@ -35,7 +35,7 @@ class OidcController extends AbstractController
             return new Response('Invalid origin URL', 400);
         }
 
-        if (!str_starts_with($authorizationBaseUrl, $allowedAuthUrlPrefix)) {
+        if (!str_starts_with($allowedAuthUrlPrefix)) {
             return new Response('Invalid authorization URL', 400);
         }
 
