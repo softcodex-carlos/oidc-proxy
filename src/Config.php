@@ -15,7 +15,7 @@ class Config
     public function __construct(
         string $clientId,
         string $clientSecret,
-        string $tenantId = null,
+        string $tenantId,
         string $redirectUri,
         array $scopes = ['openid', 'profile', 'email', 'https://graph.microsoft.com/User.Read'],
         string $urlAuthorize = null,

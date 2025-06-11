@@ -19,10 +19,10 @@ class OidcController extends AbstractController
         $clientSecret = $_ENV['CLIENT_SECRET'];
         $tenantId = $request->request->get('tenant_id');
         $origin = $request->request->get('origin');
-        $authorizationBaseUrl = $request->request->get('authorizationBaseUrl');
-        $allowedAuthUrlPrefix = $_ENV['OIDC_ALLOWED_AUTH_URL_PREFIX'];
+        $allowedEmailDomains = $request->request->get('allowed_email_domains', '');
+        $excludedEmailDomains = $request->request->get('excluded_email_domains', '');
 
-        if (!$tenantId || !$origin || !$authorizationBaseUrl) {
+        if (!$tenantId || !$origin) {
             return new Response('Missing parameters', 400);
         }
 
@@ -34,22 +34,23 @@ class OidcController extends AbstractController
             return new Response('Invalid origin URL', 400);
         }
 
-        $authUrlWithClientId = $authorizationBaseUrl . '&client_id=' . urlencode($clientId);
+        $redirectUri = $request->getSchemeAndHttpHost() . '/oidc/callback';
 
-        if (!str_starts_with($authorizationBaseUrl, $allowedAuthUrlPrefix)) {
-            return new Response('Invalid authorization URL', 400);
-        }
+        $config = new Config($clientId, $clientSecret, $tenantId, $redirectUri);
+        $proxy = new OidcProxy($config);
+        $authData = $proxy->getAuthorizationUrl();
 
+        $request->getSession()->set('oauth2_state', $authData['state']);
         $request->getSession()->set('oauth2_origin', $origin);
         $request->getSession()->set('client_config', [
             'client_id' => $clientId,
             'client_secret' => $clientSecret,
             'tenant_id' => $tenantId,
-            'allowed_email_domains' => $request->request->get('allowed_email_domains', ''),
-            'excluded_email_domains' => $request->request->get('excluded_email_domains', ''),
+            'allowed_email_domains' => $allowedEmailDomains,
+            'excluded_email_domains' => $excludedEmailDomains,
         ]);
 
-        return new RedirectResponse($authUrlWithClientId);
+        return new RedirectResponse($authData['url']);
     }
 
     #[Route('/oidc/callback', name: 'oidc_callback', methods: ['GET'])]
