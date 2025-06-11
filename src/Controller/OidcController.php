@@ -22,16 +22,6 @@ class OidcController extends AbstractController
         $authorizationBaseUrl = $request->request->get('authorizationBaseUrl');
         $allowedAuthUrlPrefix = $_ENV['OIDC_ALLOWED_AUTH_URL_PREFIX'];
 
-        dd([
-            'clientId' => $_ENV['CLIENT_ID'],
-            'clientSecret' => $_ENV['CLIENT_SECRET'],
-            'tenantId' => $request->request->get('tenant_id'),
-            'origin' => $request->request->get('origin'),
-            'authorizationBaseUrl' => $request->request->get('authorizationBaseUrl'),
-            'allowedAuthUrlPrefix' => $_ENV['OIDC_ALLOWED_AUTH_URL_PREFIX'],
-        ]);
-
-
         if (!$tenantId || !$origin || !$authorizationBaseUrl) {
             return new Response('Missing parameters', 400);
         }
