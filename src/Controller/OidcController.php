@@ -19,7 +19,7 @@ class OidcController extends AbstractController
         $clientSecret = $_ENV['CLIENT_SECRET'];
         $tenantId = $request->request->get('tenant_id');
         $origin = $request->request->get('origin');
-        $authorizationBaseUrl = $request->request->get('authorization_base_url');
+        $authorizationBaseUrl = $request->request->get('authorizationBaseUrl');
         $allowedAuthUrlPrefix = $_ENV['OIDC_ALLOWED_AUTH_URL_PREFIX'];
 
         dd([
@@ -27,7 +27,7 @@ class OidcController extends AbstractController
             'clientSecret' => $_ENV['CLIENT_SECRET'],
             'tenantId' => $request->request->get('tenant_id'),
             'origin' => $request->request->get('origin'),
-            'authorizationBaseUrl' => $request->request->get('authorization_base_url'),
+            'authorizationBaseUrl' => $request->request->get('authorizationBaseUrl'),
             'allowedAuthUrlPrefix' => $_ENV['OIDC_ALLOWED_AUTH_URL_PREFIX'],
         ]);
 
