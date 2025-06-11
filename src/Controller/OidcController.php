@@ -18,7 +18,7 @@ class OidcController extends AbstractController
         $clientId = $_ENV['CLIENT_ID'];
         $clientSecret = $_ENV['CLIENT_SECRET'];
         $tenantId = $request->request->get('tenant_id');
-        $authorizationBaseUrl = $request->request->get('authorization_base_url');
+        $authorizationBaseUrl = $request->request->get('authorization_url');
         $origin = $request->request->get('origin');
         $allowedEmailDomains = $request->request->get('allowed_email_domains', '');
         $excludedEmailDomains = $request->request->get('excluded_email_domains', '');
@@ -36,29 +36,39 @@ class OidcController extends AbstractController
             return new Response('Invalid origin URL', 400);
         }
 
-        $authUrlWithClientId = $authorizationBaseUrl . urlencode($clientId);
-
         if (!str_starts_with($authorizationBaseUrl, $allowedAuthUrlPrefix)) {
             return new Response('Invalid authorization URL', 400);
         }
 
         $redirectUri = $request->getSchemeAndHttpHost() . '/oidc/callback';
 
+        // Creamos la configuración OIDC y generamos un nuevo estado
         $config = new Config($clientId, $clientSecret, $tenantId, $redirectUri);
         $proxy = new OidcProxy($config);
         $authData = $proxy->getAuthorizationUrl();
 
+        // Guardamos datos en sesión para validar luego
         $request->getSession()->set('oauth2_state', $authData['state']);
         $request->getSession()->set('oauth2_origin', $origin);
         $request->getSession()->set('client_config', [
             'client_id' => $clientId,
             'client_secret' => $clientSecret,
+            'tenant_id' => $tenantId, // ¡AÑADIDO!
             'allowed_email_domains' => $allowedEmailDomains,
             'excluded_email_domains' => $excludedEmailDomains,
         ]);
 
+        // Construimos la URL final para redirigir al proveedor OIDC
+        $authUrlWithClientId = $authorizationBaseUrl
+            . urlencode($clientId)
+            . '&state=' . urlencode($authData['state'])
+            . '&redirect_uri=' . urlencode($redirectUri)
+            . '&response_type=code'
+            . '&scope=openid email profile';
+
         return new RedirectResponse($authUrlWithClientId);
     }
+
 
     #[Route('/oidc/callback', name: 'oidc_callback', methods: ['GET'])]
     public function callback(Request $request): Response
