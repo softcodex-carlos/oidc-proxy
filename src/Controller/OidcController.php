@@ -70,7 +70,7 @@ class OidcController extends AbstractController
             return new Response('Invalid or missing session data/state', 400);
         }
 
-        $redirectUri = $request->getSchemeAndHttpHost() . '/oidc/callback';
+        $redirectUri = 'https://proxy-oidc.linuxdo01.bweb.ch/oidc/callback';
 
         $config = new Config(
             $clientConfig['client_id'],
