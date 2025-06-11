@@ -17,7 +17,6 @@ class OidcController extends AbstractController
     {
         $clientId = $_ENV['CLIENT_ID'];
         $clientSecret = $_ENV['CLIENT_SECRET'];
-        $allowedAuthUrlPrefix = $_ENV['OIDC_ALLOWED_AUTH_URL_PREFIX'];
         $tenantId = $request->request->get('tenant_id');
         $origin = $request->request->get('origin');
         $allowedEmailDomains = $request->request->get('allowed_email_domains', '');
@@ -33,10 +32,6 @@ class OidcController extends AbstractController
 
         if (!filter_var($origin, FILTER_VALIDATE_URL)) {
             return new Response('Invalid origin URL', 400);
-        }
-
-        if (!str_starts_with($allowedAuthUrlPrefix)) {
-            return new Response('Invalid authorization URL', 400);
         }
 
         $redirectUri = $request->getSchemeAndHttpHost() . '/oidc/callback';
