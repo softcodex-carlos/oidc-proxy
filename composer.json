@@ -12,12 +12,18 @@
         "symfony/dependency-injection": "^7.2",
         "league/oauth2-client": "^2.6",
         "symfony/dotenv": "^7.3",
-        "symfony/http-client": "^7.3"
+        "symfony/http-client": "*",
+        "symfony/cache": "^7.3"
     },
     "autoload": {
         "psr-4": {
             "App\\": "src/",
             "OidcProxy\\": "src/"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "php-http/discovery": true
         }
     }
 }

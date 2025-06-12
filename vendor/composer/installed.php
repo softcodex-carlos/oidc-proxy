@@ -3,7 +3,7 @@
         'name' => 'softcodex/oidc-proxy',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '21cfc29cb80d5de2c38d1b25f2470495843e2a82',
+        'reference' => '29ecd8533adca11077c4dad1d25edd9ef21284cb',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -181,7 +181,7 @@
         'softcodex/oidc-proxy' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '21cfc29cb80d5de2c38d1b25f2470495843e2a82',
+            'reference' => '29ecd8533adca11077c4dad1d25edd9ef21284cb',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
