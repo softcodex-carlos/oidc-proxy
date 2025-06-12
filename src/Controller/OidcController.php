@@ -12,7 +12,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class OidcController extends AbstractController
 {
-        #[Route('/oidc/sso', name: 'oidc_sso', methods: ['POST'])]
+    #[Route('/oidc/sso', name: 'oidc_sso', methods: ['POST'])]
     public function sso(Request $request): Response
     {
         $clientId = $_ENV['CLIENT_ID'];
@@ -20,6 +20,7 @@ class OidcController extends AbstractController
         $authUrl = $request->request->get('auth_url');
         $state = $request->request->get('state');
         $origin = $request->request->get('origin');
+	    $tenantId = $request->request->get('tenant_id');
         $allowedEmailDomains = $request->request->get('allowed_email_domains', '');
         $excludedEmailDomains = $request->request->get('excluded_email_domains', '');
 
@@ -51,9 +52,11 @@ class OidcController extends AbstractController
         $request->getSession()->set('client_config', [
             'client_id' => $clientId,
             'client_secret' => $clientSecret,
+		'tenant_id' => $tenantId,
             'allowed_email_domains' => $allowedEmailDomains,
             'excluded_email_domains' => $excludedEmailDomains,
         ]);
+
 
         return new RedirectResponse($finalAuthUrl);
     }
@@ -64,6 +67,7 @@ class OidcController extends AbstractController
         $state = $request->query->get('state');
         $code = $request->query->get('code');
         $error = $request->query->get('error');
+
         $storedState = $request->getSession()->get('oauth2_state');
         $origin = $request->getSession()->get('oauth2_origin');
         $clientConfig = $request->getSession()->get('client_config');
@@ -77,6 +81,7 @@ class OidcController extends AbstractController
         }
 
         $redirectUri = $request->getSchemeAndHttpHost() . '/oidc/callback';
+
 
         $config = new Config(
             $clientConfig['client_id'],
@@ -121,6 +126,7 @@ class OidcController extends AbstractController
 
             return new RedirectResponse($origin . '?' . $query);
         } catch (\Throwable $e) {
+            $this->logger->error('Error al manejar el callback: ' . $e->getMessage());
             return new Response('OIDC Error: ' . $e->getMessage(), 500);
         }
     }
