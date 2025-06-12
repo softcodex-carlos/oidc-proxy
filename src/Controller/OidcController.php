@@ -21,8 +21,9 @@ class OidcController extends AbstractController
         $origin = $request->request->get('origin');
         $allowedEmailDomains = $request->request->get('allowed_email_domains', '');
         $excludedEmailDomains = $request->request->get('excluded_email_domains', '');
+        $authUrl = $request->request->get('auth_url');
 
-        if (!$tenantId || !$origin) {
+        if (!$tenantId || !$origin || !$authUrl) {
             return new Response('Missing parameters', 400);
         }
 
@@ -34,13 +35,18 @@ class OidcController extends AbstractController
             return new Response('Invalid origin URL', 400);
         }
 
-        $redirectUri = $request->getSchemeAndHttpHost() . '/oidc/callback';
+        if (!filter_var($authUrl, FILTER_VALIDATE_URL) || !str_starts_with($authUrl, 'https://login.microsoftonline.com/')) {
+            return new Response('Invalid authorization URL', 400);
+        }
 
-        $config = new Config($clientId, $clientSecret, $tenantId, $redirectUri);
-        $proxy = new OidcProxy($config);
-        $authData = $proxy->getAuthorizationUrl();
+        $parsedUrl = parse_url($authUrl);
+        parse_str($parsedUrl['query'] ?? '', $queryParams);
+        $queryParams['client_id'] = $clientId;
+        $finalAuthUrl = $parsedUrl['scheme'] . '://' . $parsedUrl['host'] . $parsedUrl['path'] . '?' . http_build_query($queryParams);
 
-        $request->getSession()->set('oauth2_state', $authData['state']);
+        $state = $queryParams['state'] ?? '';
+
+        $request->getSession()->set('oauth2_state', $state);
         $request->getSession()->set('oauth2_origin', $origin);
         $request->getSession()->set('client_config', [
             'client_id' => $clientId,
@@ -50,7 +56,7 @@ class OidcController extends AbstractController
             'excluded_email_domains' => $excludedEmailDomains,
         ]);
 
-        return new RedirectResponse($authData['url']);
+        return new RedirectResponse($finalAuthUrl);
     }
 
     #[Route('/oidc/callback', name: 'oidc_callback', methods: ['GET'])]
