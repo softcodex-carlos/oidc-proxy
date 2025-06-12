@@ -12,17 +12,18 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class OidcController extends AbstractController
 {
-    #[Route('/oidc/sso', name: 'oidc_sso', methods: ['POST'])]
+        #[Route('/oidc/sso', name: 'oidc_sso', methods: ['POST'])]
     public function sso(Request $request): Response
     {
         $clientId = $_ENV['CLIENT_ID'];
         $clientSecret = $_ENV['CLIENT_SECRET'];
-        $tenantId = $request->request->get('tenant_id');
+        $authUrl = $request->request->get('auth_url');
+        $state = $request->request->get('state');
         $origin = $request->request->get('origin');
         $allowedEmailDomains = $request->request->get('allowed_email_domains', '');
         $excludedEmailDomains = $request->request->get('excluded_email_domains', '');
 
-        if (!$tenantId || !$origin) {
+        if (!$authUrl || !$state || !$origin) {
             return new Response('Missing parameters', 400);
         }
 
@@ -34,23 +35,27 @@ class OidcController extends AbstractController
             return new Response('Invalid origin URL', 400);
         }
 
-        $redirectUri = $request->getSchemeAndHttpHost() . '/oidc/callback';
+        $parsedUrl = parse_url($authUrl);
+        parse_str($parsedUrl['query'] ?? '', $queryParams);
+        $queryParams['client_id'] = $clientId;
+        $finalAuthUrl = sprintf(
+            '%s://%s%s?%s',
+            $parsedUrl['scheme'],
+            $parsedUrl['host'],
+            $parsedUrl['path'] ?? '',
+            http_build_query($queryParams)
+        );
 
-        $config = new Config($clientId, $clientSecret, $tenantId, $redirectUri);
-        $proxy = new OidcProxy($config);
-        $authData = $proxy->getAuthorizationUrl();
-
-        $request->getSession()->set('oauth2_state', $authData['state']);
+        $request->getSession()->set('oauth2_state', $state);
         $request->getSession()->set('oauth2_origin', $origin);
         $request->getSession()->set('client_config', [
             'client_id' => $clientId,
             'client_secret' => $clientSecret,
-            'tenant_id' => $tenantId,
             'allowed_email_domains' => $allowedEmailDomains,
             'excluded_email_domains' => $excludedEmailDomains,
         ]);
 
-        return new RedirectResponse($authData['url']);
+        return new RedirectResponse($finalAuthUrl);
     }
 
     #[Route('/oidc/callback', name: 'oidc_callback', methods: ['GET'])]
