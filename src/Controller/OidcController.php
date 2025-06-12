@@ -17,14 +17,12 @@ class OidcController extends AbstractController
     {
         $clientId = $_ENV['CLIENT_ID'];
         $clientSecret = $_ENV['CLIENT_SECRET'];
-        $authUrl = $request->request->get('auth_url');
-        $state = $request->request->get('state');
+        $tenantId = $request->request->get('tenant_id');
         $origin = $request->request->get('origin');
-	    $tenantId = $request->request->get('tenant_id');
         $allowedEmailDomains = $request->request->get('allowed_email_domains', '');
         $excludedEmailDomains = $request->request->get('excluded_email_domains', '');
 
-        if (!$authUrl || !$state || !$origin) {
+        if (!$tenantId || !$origin) {
             return new Response('Missing parameters', 400);
         }
 
@@ -36,29 +34,23 @@ class OidcController extends AbstractController
             return new Response('Invalid origin URL', 400);
         }
 
-        $parsedUrl = parse_url($authUrl);
-        parse_str($parsedUrl['query'] ?? '', $queryParams);
-        $queryParams['client_id'] = $clientId;
-        $finalAuthUrl = sprintf(
-            '%s://%s%s?%s',
-            $parsedUrl['scheme'],
-            $parsedUrl['host'],
-            $parsedUrl['path'] ?? '',
-            http_build_query($queryParams)
-        );
+        $redirectUri = $request->getSchemeAndHttpHost() . '/oidc/callback';
 
-        $request->getSession()->set('oauth2_state', $state);
+        $config = new Config($clientId, $clientSecret, $tenantId, $redirectUri);
+        $proxy = new OidcProxy($config);
+        $authData = $proxy->getAuthorizationUrl();
+
+        $request->getSession()->set('oauth2_state', $authData['state']);
         $request->getSession()->set('oauth2_origin', $origin);
         $request->getSession()->set('client_config', [
             'client_id' => $clientId,
             'client_secret' => $clientSecret,
-		'tenant_id' => $tenantId,
+            'tenant_id' => $tenantId,
             'allowed_email_domains' => $allowedEmailDomains,
             'excluded_email_domains' => $excludedEmailDomains,
         ]);
 
-
-        return new RedirectResponse($finalAuthUrl);
+        return new RedirectResponse($authData['url']);
     }
 
     #[Route('/oidc/callback', name: 'oidc_callback', methods: ['GET'])]
@@ -67,7 +59,6 @@ class OidcController extends AbstractController
         $state = $request->query->get('state');
         $code = $request->query->get('code');
         $error = $request->query->get('error');
-
         $storedState = $request->getSession()->get('oauth2_state');
         $origin = $request->getSession()->get('oauth2_origin');
         $clientConfig = $request->getSession()->get('client_config');
@@ -81,7 +72,6 @@ class OidcController extends AbstractController
         }
 
         $redirectUri = $request->getSchemeAndHttpHost() . '/oidc/callback';
-
 
         $config = new Config(
             $clientConfig['client_id'],
@@ -126,7 +116,6 @@ class OidcController extends AbstractController
 
             return new RedirectResponse($origin . '?' . $query);
         } catch (\Throwable $e) {
-            $this->logger->error('Error al manejar el callback: ' . $e->getMessage());
             return new Response('OIDC Error: ' . $e->getMessage(), 500);
         }
     }
