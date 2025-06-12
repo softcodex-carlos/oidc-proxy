@@ -21,31 +21,32 @@ class MailController extends AbstractController
     #[Route('/mail/test', name: 'mail_test', methods: ['GET'])]
     public function testMail(): Response
     {
-        // Configuración fija para la prueba
-        $accessToken = 'tu_access_token'; // Pega aquí el access_token que copiaste
-        $to = 'carlos@softcodex.ch';
-        $subject = 'prueba';
-        $body = '<p>prueba2</p>'; // Envolvemos en <p> para formato HTML
-        $from = 'carlos@softcodex.ch';
+        // Obtener el token de acceso (asegúrate de haberlo obtenido previamente como en el ejemplo anterior)
+        $accessToken = 'eyJ0eXAiOiJKV1QiLCJub25jZSI6InpFTVozTmU5aHA0S3hCQUlNaWxkdVp6R2JNYWJidm5MMHhEbmp6Q1NxZ1UiLCJhbGciOiJSUzI1NiIsIng1dCI6IkNOdjBPSTNSd3FsSEZFVm5hb01Bc2hDSDJYRSIsImtpZCI6IkNOdjBPSTNSd3FsSEZFVm5hb01Bc2hDSDJYRSJ9.eyJhdWQiOiJodHRwczovL2dyYXBoLm1pY3Jvc29mdC5jb20iLCJpc3MiOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC8xMzc0Mjk3My0wZWZiLTQ2MTktOTZhNi00OWYxNzk3OTU3ZTMvIiwiaWF0IjoxNzQ5NzM2NzU0LCJuYmYiOjE3NDk3MzY3NTQsImV4cCI6MTc0OTc0MDY1NCwiYWlvIjoiazJSZ1lOZzYwK3ZjM0tpd1dlZVlKd3JwSFZza0RnQT0iLCJhcHBfZGlzcGxheW5hbWUiOiJNYWdSZW50YWxfT0lEQyIsImFwcGlkIjoiYjNhYjg1YzQtNDliYS00ZDNmLTkyODMtMzkzYzJiZThkMmE2IiwiYXBwaWRhY3IiOiIxIiwiaWRwIjoiaHR0cHM6Ly9zdHMud2luZG93cy5uZXQvMTM3NDI5NzMtMGVmYi00NjE5LTk2YTYtNDlmMTc5Nzk1N2UzLyIsImlkdHlwIjoiYXBwIiwib2lkIjoiZTZiZGRmNTQtNDJjMS00ODQzLTk3MmUtN2MwMDJjNTcxNjFmIiwicmgiOiIxLkFWMEFjeWwwRV9zT0dVYVdwa254ZVhsWDR3TUFBQUFBQUFBQXdBQUFBQUFBQUFBS0FRQmRBQS4iLCJzdWIiOiJlNmJkZGY1NC00MmMxLTQ4NDMtOTcyZS03YzAwMmM1NzE2MWYiLCJ0ZW5hbnRfcmVnaW9uX3Njb3BlIjoiRVUiLCJ0aWQiOiIxMzc0Mjk3My0wZWZiLTQ2MTktOTZhNi00OWYxNzk3OTU3ZTMiLCJ1dGkiOiJKcVVFVmdaNXYwS2dUeEV6cGk4YkFBIiwidmVyIjoiMS4wIiwid2lkcyI6WyIwOTk3YTFkMC0wZDFkLTRhY2ItYjQwOC1kNWNhNzMxMjFlOTAiXSwieG1zX2Z0ZCI6IkpQRUtrNXRKLUNlZmhhczJDMUp6SkxRQk4xNlRpSUp5bTNsczk0QXZFSllCWlhWeWIzQmxkMlZ6ZEMxa2MyMXoiLCJ4bXNfaWRyZWwiOiIyMCA3IiwieG1zX3JkIjoiMC40MkxsWUJKaWpCVVM0V0FYRXREbmQyUHprenJndVBXSjBLb05jMVl5QUVVNWhRU0VWOVJtUl9Hdjg5eVJmZnhVLWY2RElMVWNRZ0xNREJCd0FFb0RBQSIsInhtc190Y2R0IjoxNTY5NTAxOTIwLCJ4bXNfdGRiciI6IkVVIn0.PDXL8lvGP51YU4YU4t7scXsEQ_hhVxSDTfvEDOKtpi0DZvyBBBsVy9w3OJVlgSLyvD3FeXKhOKf413yNl099qd2D7F73csNeEBo8SfdMCtoVR9mP89HLadUDc45YbxxXTmwuujzJXWZ_D3c8yANJENzkNG0Kjow2hTuDBNNiFPRRP1Yq4aKnx6Cb6V7qJhFRTdnO6edPga_K_czvxY9khecgdkUNXuzDw9Oi6pX6EWowy4wJ_BoRb-o5QwL1bSzafdQGJfQGT0MnkiekwL-0jYvgmIlrvbkQxwTJcvfFE1nCAdyy2fJlrDhDmfg_vBr3fL1gXICeYTIe8P-fREjm6A';
 
+        $to = 'carlos@softcodex.ch'; // Cambia por tu correo
+        $subject = 'Prueba de correo';
+        $body = 'Este es un correo de prueba desde la API de Microsoft Graph.';
+        $from = 'carlos@softcodex.ch';  // O puedes omitirlo si estás usando el correo del cliente
+
+        // Construir el cuerpo del mensaje
+        $message = [
+            'subject' => $subject,
+            'body' => [
+                'contentType' => 'HTML',
+                'content' => $body,
+            ],
+            'toRecipients' => [
+                ['emailAddress' => ['address' => $to]],
+            ],
+            'from' => [
+                'emailAddress' => ['address' => $from],
+            ],
+        ];
+
+        // Enviar la solicitud a la API de Microsoft Graph
+        $endpoint = "https://graph.microsoft.com/v1.0/users/{$from}/sendMail";  // Si no tienes un remitente, usa el endpoint /me/sendMail
         try {
-            // Construir el cuerpo del mensaje
-            $message = [
-                'subject' => $subject,
-                'body' => [
-                    'contentType' => 'HTML',
-                    'content' => $body,
-                ],
-                'toRecipients' => [
-                    ['emailAddress' => ['address' => $to]],
-                ],
-                'from' => [
-                    'emailAddress' => ['address' => $from],
-                ],
-            ];
-
-            // Enviar solicitud a Microsoft Graph
-            $endpoint = "https://graph.microsoft.com/v1.0/users/{$from}/sendMail";
             $response = $this->httpClient->request('POST', $endpoint, [
                 'headers' => [
                     'Authorization' => "Bearer {$accessToken}",
@@ -57,106 +58,6 @@ class MailController extends AbstractController
             // Verificar respuesta
             if ($response->getStatusCode() === 202) {
                 return new Response('<h1>Correo enviado correctamente</h1>', 200, ['Content-Type' => 'text/html']);
-            } else {
-                return new JsonResponse(['error' => 'Failed to send test email: ' . $response->getContent(false)], $response->getStatusCode());
-            }
-        } catch (\Exception $e) {
-            error_log('MailController test error: ' . $e->getMessage());
-            return new JsonResponse(['error' => 'Failed to send test email: ' . $e->getMessage()], 500);
-        }
-    }
-
-    #[Route('/mail/send', name: 'mail_send', methods: ['POST'])]
-    public function sendMail(Request $request): Response
-    {
-        // Obtener parámetros
-        $accessToken = $request->request->get('access_token');
-        $to = $request->request->get('to');
-        $subject = $request->request->get('subject');
-        $body = $request->request->get('body');
-        $from = $request->request->get('from');
-        $attachments = $request->files->all();
-
-        // Validar parámetros requeridos
-        if (!$accessToken || !$to || !$subject || !$body) {
-            return new JsonResponse(['error' => 'Missing required parameters'], 400);
-        }
-
-        // Convertir destinatarios en array
-        $toRecipients = array_filter(array_map('trim', explode(',', $to)));
-        foreach ($toRecipients as $recipient) {
-            if (!filter_var($recipient, FILTER_VALIDATE_EMAIL)) {
-                return new JsonResponse(['error' => "Invalid recipient email: {$recipient}"], 400);
-            }
-        }
-
-        // Validar remitente
-        if ($from && !filter_var($from, FILTER_VALIDATE_EMAIL)) {
-            return new JsonResponse(['error' => "Invalid sender email: {$from}"], 400);
-        }
-
-        // Validar dominios permitidos/prohibidos
-        $clientConfig = $request->getSession()->get('client_config', []);
-        $emailDomain = $from ? strtolower(substr(strrchr($from, '@'), 1)) : '';
-        if ($emailDomain) {
-            $excludedDomains = array_filter(array_map('trim', explode(',', $clientConfig['excluded_email_domains'] ?? '')));
-            if (!empty($excludedDomains) && in_array($emailDomain, $excludedDomains)) {
-                return new JsonResponse(['error' => 'Sender email domain not allowed'], 403);
-            }
-            $allowedDomains = array_filter(array_map('trim', explode(',', $clientConfig['allowed_email_domains'] ?? '')));
-            if (!empty($allowedDomains) && !in_array($emailDomain, $allowedDomains)) {
-                return new JsonResponse(['error' => 'Sender email domain not allowed'], 403);
-            }
-        }
-
-        try {
-            // Construir el cuerpo del mensaje
-            $message = [
-                'subject' => $subject,
-                'body' => [
-                    'contentType' => 'HTML',
-                    'content' => $body,
-                ],
-                'toRecipients' => array_map(function ($recipient) {
-                    return ['emailAddress' => ['address' => $recipient]];
-                }, $toRecipients),
-            ];
-
-            // Configurar remitente
-            if ($from) {
-                $message['from'] = [
-                    'emailAddress' => ['address' => $from],
-                ];
-            }
-
-            // Manejar adjuntos
-            if (!empty($attachments)) {
-                $message['attachments'] = [];
-                foreach ($attachments as $attachment) {
-                    if ($attachment instanceof \Symfony\Component\HttpFoundation\File\UploadedFile) {
-                        $message['attachments'][] = [
-                            '@odata.type' => '#microsoft.graph.fileAttachment',
-                            'name' => $attachment->getClientOriginalName(),
-                            'contentType' => $attachment->getMimeType(),
-                            'contentBytes' => base64_encode(file_get_contents($attachment->getPathname())),
-                        ];
-                    }
-                }
-            }
-
-            // Enviar solicitud a Microsoft Graph
-            $endpoint = $from ? "https://graph.microsoft.com/v1.0/users/{$from}/sendMail" : 'https://graph.microsoft.com/v1.0/me/sendMail';
-            $response = $this->httpClient->request('POST', $endpoint, [
-                'headers' => [
-                    'Authorization' => "Bearer {$accessToken}",
-                    'Content-Type' => 'application/json',
-                ],
-                'json' => ['message' => $message],
-            ]);
-
-            // Verificar respuesta
-            if ($response->getStatusCode() === 202) {
-                return new JsonResponse(['message' => 'Email sent successfully'], 202);
             } else {
                 return new JsonResponse(['error' => 'Failed to send email: ' . $response->getContent(false)], $response->getStatusCode());
             }
