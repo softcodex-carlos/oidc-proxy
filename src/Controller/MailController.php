@@ -28,7 +28,7 @@ class MailController extends AbstractController
     {
         // Log para depurar si la solicitud llega
         file_put_contents('proxy_log.txt', 'Request received: ' . $request->getContent() . ' | IP: ' . $request->getClientIp() . PHP_EOL, FILE_APPEND);
-
+/*
         // Verificar IP confiable
         $clientIp = $request->getClientIp();
         $isTrusted = false;
@@ -42,7 +42,7 @@ class MailController extends AbstractController
         if (!$isTrusted) {
             file_put_contents('proxy_log.txt', 'Unauthorized IP: ' . $clientIp . PHP_EOL, FILE_APPEND);
             return new JsonResponse(['error' => 'Unauthorized IP address: ' . $clientIp], 403);
-        }
+        }*/
 
         // Parsear el JSON de la solicitud
         $data = json_decode($request->getContent(), true);
