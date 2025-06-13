@@ -8,3 +8,6 @@ framework:
         - 'X-Forwarded-Host'
         - 'X-Forwarded-Port'
         - 'X-Forwarded-For'
+
+    mailer:
+        dsn: '%env(MAILER_DSN)%'
