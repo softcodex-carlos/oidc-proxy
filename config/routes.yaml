@@ -1,3 +1,7 @@
+controllers:
+    resource: '../src/Controller/'
+    type: attribute
+
 oidc_sso:
   path: /oidc/sso
   controller: App\Controller\OidcController::sso
