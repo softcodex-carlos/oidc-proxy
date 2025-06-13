@@ -6,3 +6,7 @@ oidc_sso:
 oidc_callback:
   path: /oidc/callback
   controller: App\Controller\OidcController::callback
+
+mail_send:
+  path: /mail/send
+  controller: App\Controller\MailController::sendEmail
