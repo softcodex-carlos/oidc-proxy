@@ -59,7 +59,7 @@ class MailController extends AbstractController
             $errors = [];
             foreach ($violations as $violation) {
                 $errors[] = $violation->getPropertyPath() . ': ' . $violation->getMessage();
-            } //ok
+            }
             return new JsonResponse(['error' => 'Validation failed', 'details' => $errors], 400);
         }
 
