@@ -2,115 +2,158 @@
 
 namespace App\Controller;
 
-use App\Service\EmailService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Validator\Constraints as Assert;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Symfony\Component\HttpClient\HttpClient;
+use Symfony\Component\Cache\Adapter\FilesystemAdapter;
+use Psr\Log\LoggerInterface;
+use League\OAuth2\Client\Provider\GenericProvider;
 
 class MailController extends AbstractController
 {
-    private EmailService $emailService;
-    private ValidatorInterface $validator;
-    private array $trustedProxies;
+    private $logger;
+    private $oauthProvider;
 
-    public function __construct(EmailService $emailService, ValidatorInterface $validator, string $trustedProxies)
+    public function __construct(LoggerInterface $logger)
     {
-        $this->emailService = $emailService;
-        $this->validator = $validator;
-        $this->trustedProxies = array_filter(array_map('trim', explode(',', $trustedProxies)));
+        $this->logger = $logger;
+        $this->oauthProvider = new GenericProvider([
+            'clientId'                => $_ENV['AZURE_CLIENT_ID'],
+            'clientSecret'            => $_ENV['AZURE_CLIENT_SECRET'],
+            'urlAuthorize'            => "https://login.microsoftonline.com/{$_ENV['AZURE_TENANT_ID']}/oauth2/v2.0/authorize",
+            'urlAccessToken'          => "https://login.microsoftonline.com/{$_ENV['AZURE_TENANT_ID']}/oauth2/v2.0/token",
+            'urlResourceOwnerDetails' => '',
+            'scopes'                  => 'https://graph.microsoft.com/.default',
+        ]);
     }
 
-    #[Route('/api/mail/send', name: 'api_mail_send', methods: ['POST'])]
-    public function sendEmail(Request $request): JsonResponse
+    #[Route('/mail/send', name: 'mail_send', methods: ['POST'])]
+    public function send(Request $request): Response
     {
-        // Log para depurar si la solicitud llega
-        file_put_contents('proxy_log.txt', 'Request received: ' . $request->getContent() . ' | IP: ' . $request->getClientIp() . PHP_EOL, FILE_APPEND);
-/*
-        // Verificar IP confiable
-        $clientIp = $request->getClientIp();
-        $isTrusted = false;
-        foreach ($this->trustedProxies as $proxy) {
-            if ($this->isIpInRange($clientIp, $proxy)) {
-                $isTrusted = true;
-                break;
-            }
-        }
-
-        if (!$isTrusted) {
-            file_put_contents('proxy_log.txt', 'Unauthorized IP: ' . $clientIp . PHP_EOL, FILE_APPEND);
-            return new JsonResponse(['error' => 'Unauthorized IP address: ' . $clientIp], 403);
-        }*/
-
-        // Parsear el JSON de la solicitud
+        // Obtener datos del cuerpo de la solicitud
         $data = json_decode($request->getContent(), true);
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            file_put_contents('proxy_log.txt', 'Invalid JSON: ' . json_last_error_msg() . PHP_EOL, FILE_APPEND);
-            return new JsonResponse(['error' => 'Invalid JSON format'], 400);
+        $subject = $data['subject'] ?? null;
+        $content = $data['content'] ?? null;
+        $from = $data['from'] ?? null;
+        $to = $data['to'] ?? [];
+
+        // Validar parámetros requeridos
+        if (!$subject || !$content || !$from || empty($to)) {
+            $this->logger->warning('Missing required parameters', ['ip' => $request->getClientIp()]);
+            return new Response('Missing required parameters: subject, content, from, or to', 400);
         }
 
-        // Validar los campos obligatorios
-        $constraints = new Assert\Collection([
-            'to' => [new Assert\NotBlank(), new Assert\Email()],
-            'subject' => new Assert\NotBlank(),
-            'html' => new Assert\NotBlank(),
-            'from' => [new Assert\NotBlank(), new Assert\Email()],
-            'tenant_id' => new Assert\NotBlank(),
-        ]);
+        // Validar formato de correos
+        if (!filter_var($from, FILTER_VALIDATE_EMAIL)) {
+            $this->logger->warning('Invalid from email', ['from' => $from]);
+            return new Response('Invalid from email address', 400);
+        }
 
-        $violations = $this->validator->validate($data, $constraints);
-        if (count($violations) > 0) {
-            $errors = [];
-            foreach ($violations as $violation) {
-                $errors[] = $violation->getPropertyPath() . ': ' . $violation->getMessage();
+        foreach ($to as $recipient) {
+            if (!filter_var($recipient, FILTER_VALIDATE_EMAIL)) {
+                $this->logger->warning('Invalid recipient email', ['recipient' => $recipient]);
+                return new Response('Invalid recipient email address: ' . $recipient, 400);
             }
-            file_put_contents('proxy_log.txt', 'Validation errors: ' . implode(', ', $errors) . PHP_EOL, FILE_APPEND);
-            return new JsonResponse(['error' => 'Validation failed', 'details' => $errors], 400);
+        }
+
+        // Validar remitente autorizado
+        $allowedSender = $_ENV['AZURE_ALLOWED_SENDER_EMAIL'] ?? null;
+        if (!$allowedSender || $from !== $allowedSender) {
+            $this->logger->warning('Unauthorized sender email', ['from' => $from]);
+            return new Response('Unauthorized sender email', 403);
+        }
+
+        // Validar HTTPS en producción
+        if (!$this->isSecureRequest($request)) {
+            $this->logger->warning('Non-HTTPS request detected', ['ip' => $request->getClientIp()]);
+            return new Response('HTTPS required', 403);
         }
 
         try {
-            // Obtener client_id y client_secret del .env
-            $clientId = $_ENV['OIDC_CLIENT_ID'] ?? '';
-            $clientSecret = $_ENV['OIDC_CLIENT_SECRET'] ?? '';
-            if (empty($clientId) || empty($clientSecret)) {
-                file_put_contents('proxy_log.txt', 'Missing client_id or client_secret' . PHP_EOL, FILE_APPEND);
-                return new JsonResponse(['error' => 'Missing client_id or client_secret in proxy configuration'], 500);
-            }
+            // Obtener token de acceso
+            $token = $this->getAccessToken();
 
-            // Llamar al servicio para enviar el correo
-            $this->emailService->sendEmail(
-                $data['to'],
-                $data['subject'],
-                $data['html'],
-                $data['from'],
-                $data['tenant_id'],
-                $clientId,
-                $clientSecret
-            );
+            // Enviar correo
+            $this->sendEmail($token, $from, $to, $subject, $content);
 
-            file_put_contents('proxy_log.txt', 'Email sent successfully to ' . $data['to'] . PHP_EOL, FILE_APPEND);
-            return new JsonResponse(['message' => 'Email sent successfully'], 200);
+            $this->logger->info('Email sent successfully', ['from' => $from, 'to' => $to]);
+            return new Response('Email sent successfully', 200);
         } catch (\Exception $e) {
-            file_put_contents('proxy_log.txt', 'Error sending email: ' . $e->getMessage() . PHP_EOL, FILE_APPEND);
-            return new JsonResponse(['error' => 'Failed to send email: ' . $e->getMessage()], 500);
+            $this->logger->error('Error sending email', ['error' => $e->getMessage(), 'from' => $from]);
+            return new Response('Error sending email: ' . $e->getMessage(), 500);
         }
     }
 
-    /**
-     * Verifica si una IP está en un rango o coincide con una IP específica.
-     */
-    private function isIpInRange(string $ip, string $range): bool
+    private function getAccessToken(): string
     {
-        if (strpos($range, '/') === false) {
-            return $ip === $range;
+        $cache = new FilesystemAdapter();
+        $cacheKey = 'azure_access_token';
+        $cachedToken = $cache->getItem($cacheKey);
+
+        if ($cachedToken->isHit()) {
+            return $cachedToken->get();
         }
 
-        [$subnet, $bits] = explode('/', $range);
-        $ip = ip2long($ip);
-        $subnet = ip2long($subnet);
-        $mask = -1 << (32 - $bits);
-        return ($ip & $mask) === ($subnet & $mask);
+        try {
+            $accessToken = $this->oauthProvider->getAccessToken('client_credentials');
+            $token = $accessToken->getToken();
+            $expires = $accessToken->getExpires();
+
+            $cachedToken->set($token);
+            $cachedToken->expiresAt(new \DateTimeImmutable("@$expires"));
+            $cache->save($cachedToken);
+
+            return $token;
+        } catch (\Exception $e) {
+            $this->logger->error('Failed to obtain access token', ['error' => $e->getMessage()]);
+            throw new \Exception('Failed to obtain access token');
+        }
+    }
+
+    private function sendEmail(string $token, string $from, array $to, string $subject, string $content): void
+    {
+        $client = HttpClient::create();
+        $recipients = array_map(function ($email) {
+            return ['emailAddress' => ['address' => $email]];
+        }, $to);
+
+        $payload = [
+            'message' => [
+                'subject' => $subject,
+                'body' => [
+                    'contentType' => 'HTML',
+                    'content' => $content,
+                ],
+                'toRecipients' => $recipients,
+                'from' => [
+                    'emailAddress' => [
+                        'address' => $from,
+                    ],
+                ],
+            ],
+        ];
+
+        $response = $client->request('POST', "https://graph.microsoft.com/v1.0/users/{$from}/sendMail", [
+            'headers' => [
+                'Authorization' => "Bearer {$token}",
+                'Content-Type' => 'application/json',
+            ],
+            'json' => $payload,
+        ]);
+
+        if ($response->getStatusCode() !== 202) {
+            $this->logger->error('Failed to send email', ['response' => $response->getContent(false)]);
+            throw new \Exception('Failed to send email');
+        }
+    }
+
+    private function isSecureRequest(Request $request): bool
+    {
+        if ($this->getParameter('kernel.environment') === 'dev') {
+            return true;
+        }
+        return $request->isSecure();
     }
 }
