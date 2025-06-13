@@ -13,7 +13,7 @@ $mailer = new Mailer($transport);
 
 $email = (new Email())
     ->from('carlos@softcodex.ch')
-    ->to('test@example.com') // Cambia a un correo real para pruebas
+    ->to('carlos@softcodex.ch') // Cambia a un correo real para pruebas
     ->subject('Test Email')
     ->text('This is a test email.');
 
