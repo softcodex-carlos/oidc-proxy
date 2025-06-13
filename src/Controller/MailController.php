@@ -28,7 +28,6 @@ class MailController extends AbstractController
      */
     public function sendEmail(Request $request): JsonResponse
     {
-        // Verificar IP confiable
         $clientIp = $request->getClientIp();
         $isTrusted = false;
         foreach ($this->trustedProxies as $proxy) {
@@ -39,7 +38,6 @@ class MailController extends AbstractController
         }
 
         if (!$isTrusted) {
-            // Registrar intento no autorizado (puedes usar un sistema de logging aquí)
             return new JsonResponse(['error' => 'Unauthorized IP address: ' . $clientIp], 403);
         }
 
