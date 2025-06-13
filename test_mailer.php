@@ -4,8 +4,8 @@ use Symfony\Component\Mailer\Transport;
 use Symfony\Component\Mailer\Mailer;
 use Symfony\Component\Mime\Email;
 
-// Ajusta la ruta para cargar autoload.php desde la raíz del proyecto
-require __DIR__ . '/../../vendor/autoload.php';
+// Ajusta la ruta al autoloader
+require __DIR__ . '/vendor/autoload.php';
 
 $dsn = 'smtp://carlos@softcodex.ch:D!685174168020ab@smtp.office365.com:587?encryption=starttls';
 $transport = Transport::fromDsn($dsn);
