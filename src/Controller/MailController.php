@@ -14,6 +14,11 @@ class MailController extends AbstractController
     #[Route('/mail/send', name: 'mail_send', methods: ['POST'])]
     public function sendEmail(Request $request, MailerInterface $mailer): JsonResponse
     {
+
+        $dsn = $_ENV['MAILER_DSN'];
+        $transport = Transport::fromDsn($dsn);
+        $mailer = new Mailer($transport);
+
         // Validar IP de origen
         $trustedProxies = explode(',', $_ENV['TRUSTED_PROXIES'] ?? '');
         $clientIp = $request->getClientIp();
