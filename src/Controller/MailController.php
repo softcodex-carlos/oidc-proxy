@@ -43,13 +43,11 @@ class MailController extends AbstractController
             return new JsonResponse(['error' => 'Unauthorized IP address: ' . $clientIp], 403);
         }
 
-        // Parsear el JSON de la solicitud
         $data = json_decode($request->getContent(), true);
         if (json_last_error() !== JSON_ERROR_NONE) {
             return new JsonResponse(['error' => 'Invalid JSON format'], 400);
         }
 
-        // Validar los campos obligatorios
         $constraints = new Assert\Collection([
             'to' => [new Assert\NotBlank(), new Assert\Email()],
             'subject' => new Assert\NotBlank(),
@@ -68,14 +66,12 @@ class MailController extends AbstractController
         }
 
         try {
-            // Obtener client_id y client_secret del .env
             $clientId = $_ENV['OIDC_CLIENT_ID'] ?? '';
             $clientSecret = $_ENV['OIDC_CLIENT_SECRET'] ?? '';
             if (empty($clientId) || empty($clientSecret)) {
                 return new JsonResponse(['error' => 'Missing client_id or client_secret in proxy configuration'], 500);
             }
 
-            // Llamar al servicio para enviar el correo
             $this->emailService->sendEmail(
                 $data['to'],
                 $data['subject'],
@@ -88,7 +84,6 @@ class MailController extends AbstractController
 
             return new JsonResponse(['message' => 'Email sent successfully'], 200);
         } catch (\Exception $e) {
-            // Registrar el error (el EmailService lo manejará)
             return new JsonResponse(['error' => 'Failed to send email: ' . $e->getMessage()], 500);
         }
     }
