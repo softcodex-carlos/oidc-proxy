@@ -29,23 +29,24 @@ class MailController extends AbstractController
         $data = json_decode($request->getContent(), true);
 
         // Validar campos necesarios
-        foreach (['subject', 'html', 'to'] as $field) {
+        foreach (['subject', 'html', 'to', 'from', 'tenant_id', 'refreshToken'] as $field) {
             if (empty($data[$field])) {
                 return new JsonResponse(['error' => "Missing required field: $field"], 400);
             }
         }
 
-        // Recuperar refresh_token y email de sesión
-        $refreshToken = $request->getSession()->get('refresh_token');
-        $fromEmail = $request->getSession()->get('user_email');
+        $subject = $data['subject'];
+        $html = $data['html'];
+        $to = $data['to'];
+        $fromEmail = $data['from'];
+        $tenantId = $data['tenant_id'];
+        $refreshToken = $data['refreshToken'];
 
-        if (!$refreshToken || !$fromEmail) {
-            return new JsonResponse(['error' => 'Missing refresh token or user email in session'], 403);
-        }
+        // Depurar datos recibidos
+        error_log('MailController: from=' . $fromEmail . ', tenant_id=' . $tenantId . ', refresh_token=' . (strlen($refreshToken) > 10 ? 'present' : 'invalid'));
 
         $clientId = $_ENV['CLIENT_ID'];
         $clientSecret = $_ENV['CLIENT_SECRET'];
-        $tenantId = $_ENV['TENANT_ID'];
 
         try {
             // Obtener access_token desde el refresh_token
@@ -68,15 +69,15 @@ class MailController extends AbstractController
             // Enviar correo usando Microsoft Graph
             $emailPayload = [
                 'message' => [
-                    'subject' => $data['subject'],
+                    'subject' => $subject,
                     'body' => [
                         'contentType' => 'HTML',
-                        'content' => $data['html'],
+                        'content' => $html,
                     ],
                     'toRecipients' => [
                         [
                             'emailAddress' => [
-                                'address' => $data['to'],
+                                'address' => $to,
                             ],
                         ],
                     ],
