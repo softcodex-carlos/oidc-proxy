@@ -18,7 +18,7 @@ class Config
         string $clientSecret,
         string $tenantId,
         string $redirectUri,
-        array $scopes = ['openid', 'profile', 'email', 'https://graph.microsoft.com/User.Read', 'https://graph.microsoft.com/Mail.Send'],
+        array $scopes = ['openid', 'profile', 'email', 'offline_access', 'https://graph.microsoft.com/User.Read', 'https://graph.microsoft.com/Mail.Send'],
         string $urlAuthorize = null,
         string $urlAccessToken = null,
         string $urlResourceOwnerDetails = 'https://graph.microsoft.com/v1.0/me'

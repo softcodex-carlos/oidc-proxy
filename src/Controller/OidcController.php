@@ -79,11 +79,14 @@ class OidcController extends AbstractController
 
         $redirectUri = $request->getSchemeAndHttpHost() . '/oidc/callback';
 
+        $scopes = ['openid', 'profile', 'email', 'offline_access', 'https://graph.microsoft.com/User.Read'];
+
         $config = new Config(
             $clientConfig['client_id'],
             $clientConfig['client_secret'],
             $clientConfig['tenant_id'],
-            $redirectUri
+            $redirectUri,
+            $scopes
         );
 
         $proxy = new OidcProxy($config);
