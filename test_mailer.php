@@ -1,10 +1,9 @@
 <?php
-// test_mailer.php
+
 use Symfony\Component\Mailer\Transport;
 use Symfony\Component\Mailer\Mailer;
 use Symfony\Component\Mime\Email;
 
-// Ajusta la ruta al autoloader
 require __DIR__ . '/vendor/autoload.php';
 
 $dsn = 'smtp://carlos@softcodex.ch:D!685174168020ab@smtp.office365.com:587?encryption=starttls';
@@ -13,7 +12,7 @@ $mailer = new Mailer($transport);
 
 $email = (new Email())
     ->from('carlos@softcodex.ch')
-    ->to('carlos@softcodex.ch') // Cambia a un correo real para pruebas
+    ->to('carlos@softcodex.ch')
     ->subject('Test Email')
     ->text('This is a test email.');
 

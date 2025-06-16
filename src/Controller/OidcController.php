@@ -91,6 +91,8 @@ class OidcController extends AbstractController
         try {
             $result = $proxy->handleCallback($code, $state, $storedState);
 
+            $request->getSession()->set('refresh_token', $result['refreshToken']);
+
             $email = $result['userData']['mail'] ?? $result['userData']['userPrincipalName'] ?? '';
             $displayName = $result['userData']['displayName'] ?? ucfirst(strtolower(explode('@', $email)[0]));
 
@@ -112,6 +114,7 @@ class OidcController extends AbstractController
 
             $query = http_build_query([
                 'accessToken' => $result['accessToken'],
+                'refreshToken' => $result['refreshToken'],
                 'email' => $email,
                 'displayName' => $displayName,
             ]);

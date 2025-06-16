@@ -1,8 +1,8 @@
 <?php
-// debug_services.php
+
 require __DIR__ . '/vendor/autoload.php';
 
-$kernel = new \App\Kernel('prod', true); // Cambia 'dev' a 'prod' si estás en producción
+$kernel = new \App\Kernel('prod', true);
 $kernel->boot();
 $container = $kernel->getContainer();
 
