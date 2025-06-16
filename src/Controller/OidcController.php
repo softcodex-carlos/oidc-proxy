@@ -98,8 +98,6 @@ class OidcController extends AbstractController
                 return new Response('Missing email in user data', 400);
             }
 
-            $request->getSession()->set('refresh_token', $result['refreshToken']);
-
             $emailDomain = strtolower(substr(strrchr($email, '@'), 1));
 
             $excludedDomains = array_filter(array_map('trim', explode(',', $clientConfig['excluded_email_domains'] ?? '')));
@@ -114,6 +112,7 @@ class OidcController extends AbstractController
 
             $query = http_build_query([
                 'accessToken' => $result['accessToken'],
+                'refreshToken' => $result['refreshToken'],
                 'email' => $email,
                 'displayName' => $displayName,
             ]);
