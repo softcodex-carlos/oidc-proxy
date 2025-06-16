@@ -6,9 +6,6 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Mailer\Mailer;
-use Symfony\Component\Mailer\Transport;
-use Symfony\Component\Mime\Email;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class MailController extends AbstractController
@@ -31,7 +28,7 @@ class MailController extends AbstractController
 
         $data = json_decode($request->getContent(), true);
 
-        // Validar campos necesarios (sin refresh_token ni tenant_id, ya están en sesión o .env)
+        // Validar campos necesarios
         foreach (['subject', 'html', 'to'] as $field) {
             if (empty($data[$field])) {
                 return new JsonResponse(['error' => "Missing required field: $field"], 400);
@@ -48,7 +45,7 @@ class MailController extends AbstractController
 
         $clientId = $_ENV['CLIENT_ID'];
         $clientSecret = $_ENV['CLIENT_SECRET'];
-        $tenantId = $_ENV['TENANT_ID']; // puedes moverlo a .env, ya no debería venir del frontend
+        $tenantId = $_ENV['TENANT_ID'];
 
         try {
             // Obtener access_token desde el refresh_token
@@ -58,7 +55,7 @@ class MailController extends AbstractController
                     'client_id' => $clientId,
                     'client_secret' => $clientSecret,
                     'refresh_token' => $refreshToken,
-                    'scope' => 'https://outlook.office365.com/.default',
+                    'scope' => 'https://graph.microsoft.com/.default',
                 ],
                 'headers' => [
                     'Content-Type' => 'application/x-www-form-urlencoded',
@@ -68,26 +65,43 @@ class MailController extends AbstractController
             $tokenData = $tokenResponse->toArray();
             $accessToken = $tokenData['access_token'];
 
-            // Configurar DSN SMTP con XOAUTH2
-            $dsn = sprintf(
-                'smtp://%s@office365.com:587?auth=xoauth2&access_token=%s&encryption=starttls',
-                urlencode($fromEmail),
-                urlencode($accessToken)
-            );
+            // Enviar correo usando Microsoft Graph
+            $emailPayload = [
+                'message' => [
+                    'subject' => $data['subject'],
+                    'body' => [
+                        'contentType' => 'HTML',
+                        'content' => $data['html'],
+                    ],
+                    'toRecipients' => [
+                        [
+                            'emailAddress' => [
+                                'address' => $data['to'],
+                            ],
+                        ],
+                    ],
+                    'from' => [
+                        'emailAddress' => [
+                            'address' => $fromEmail,
+                        ],
+                    ],
+                ],
+                'saveToSentItems' => true,
+            ];
 
-            $transport = Transport::fromDsn($dsn);
-            $mailer = new Mailer($transport);
+            $response = $this->httpClient->request('POST', 'https://graph.microsoft.com/v1.0/me/sendMail', [
+                'headers' => [
+                    'Authorization' => "Bearer $accessToken",
+                    'Content-Type' => 'application/json',
+                ],
+                'json' => $emailPayload,
+            ]);
 
-            $email = (new Email())
-                ->from($fromEmail)
-                ->to($data['to'])
-                ->subject($data['subject'])
-                ->html($data['html']);
-
-            $mailer->send($email);
-
-            return new JsonResponse(['message' => 'Email sent successfully'], 200);
-
+            if ($response->getStatusCode() === 202) {
+                return new JsonResponse(['message' => 'Email sent successfully'], 200);
+            } else {
+                return new JsonResponse(['error' => 'Failed to send email'], 500);
+            }
         } catch (\Exception $e) {
             return new JsonResponse(['error' => 'Failed to send email: ' . $e->getMessage()], 500);
         }

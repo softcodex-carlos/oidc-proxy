@@ -79,14 +79,11 @@ class OidcController extends AbstractController
 
         $redirectUri = $request->getSchemeAndHttpHost() . '/oidc/callback';
 
-        $scopes = ['openid', 'profile', 'email', 'offline_access', 'https://graph.microsoft.com/User.Read'];
-
         $config = new Config(
             $clientConfig['client_id'],
             $clientConfig['client_secret'],
             $clientConfig['tenant_id'],
-            $redirectUri,
-            $scopes
+            $redirectUri
         );
 
         $proxy = new OidcProxy($config);
@@ -94,14 +91,14 @@ class OidcController extends AbstractController
         try {
             $result = $proxy->handleCallback($code, $state, $storedState);
 
-            $request->getSession()->set('refresh_token', $result['refreshToken']);
-
             $email = $result['userData']['mail'] ?? $result['userData']['userPrincipalName'] ?? '';
             $displayName = $result['userData']['displayName'] ?? ucfirst(strtolower(explode('@', $email)[0]));
 
             if (!$email) {
                 return new Response('Missing email in user data', 400);
             }
+
+            $request->getSession()->set('refresh_token', $result['refreshToken']);
 
             $emailDomain = strtolower(substr(strrchr($email, '@'), 1));
 
@@ -117,7 +114,6 @@ class OidcController extends AbstractController
 
             $query = http_build_query([
                 'accessToken' => $result['accessToken'],
-                'refreshToken' => $result['refreshToken'],
                 'email' => $email,
                 'displayName' => $displayName,
             ]);
