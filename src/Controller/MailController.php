@@ -16,7 +16,7 @@ class MailController
         } catch (\JsonException $e) {
             return $this->jsonResponse([
                 'status' => 'error',
-                'message' => 'JSON mal formado: ' . $e->getMessage()
+                'message' => 'Malformed JSON: ' . $e->getMessage()
             ], 400);
         }
 
@@ -25,7 +25,7 @@ class MailController
             if (empty($data[$field])) {
                 return $this->jsonResponse([
                     'status' => 'error',
-                    'message' => "Falta el campo requerido: $field"
+                    'message' => "Required field is missing: $field"
                 ], 400);
             }
         }
@@ -70,12 +70,12 @@ class MailController
         if ($httpCode >= 200 && $httpCode < 300) {
             return $this->jsonResponse([
                 'status' => 'success',
-                'message' => 'Correo enviado correctamente.'
+                'message' => 'Mail sent successfully.'
             ]);
         } else {
             return $this->jsonResponse([
                 'status' => 'error',
-                'message' => 'Error al enviar el correo',
+                'message' => 'Error sending email',
                 'httpCode' => $httpCode,
                 'graphResponse' => json_decode($response, true),
                 'curlError' => $error
@@ -96,7 +96,7 @@ class MailController
         if ($json === false) {
             $json = json_encode([
                 'status' => 'error',
-                'message' => 'Error al codificar JSON: ' . json_last_error_msg()
+                'message' => 'Error encoding JSON: ' . json_last_error_msg()
             ]);
             $status = 500;
         }
