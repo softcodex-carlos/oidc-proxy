@@ -18,15 +18,3 @@ services:
                 urlAccessToken: 'https://login.microsoftonline.com/%env(VALID_TENANT)%/oauth2/v2.0/token'
                 urlResourceOwnerDetails: ''
                 scopes: ['https://graph.microsoft.com/Mail.Send']
-
-    Symfony\Component\Mailer\Transport\TransportInterface:
-        class: Symfony\Component\Mailer\Transport\Smtp\SmtpTransport
-        arguments:
-            $stream: '@Symfony\Component\Mailer\Transport\Smtp\Stream\SocketStream'
-            $authenticator: '@Symfony\Component\Mailer\Transport\Smtp\Auth\XOAuth2Authenticator'
-            $eventDispatcher: '@event_dispatcher'
-            $logger: '@logger'
-
-    Symfony\Component\Mailer\Transport\Smtp\Auth\XOAuth2Authenticator:
-        arguments:
-            $provider: '@League\OAuth2\Client\Provider\GenericProvider'
