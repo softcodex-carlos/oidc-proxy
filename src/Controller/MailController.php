@@ -4,39 +4,17 @@ namespace App\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\Mailer\Mailer;
-use Symfony\Component\Mailer\Transport;
-use Symfony\Component\Mime\Email;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
-use Symfony\Component\HtmlSanitizer\HtmlSanitizer;
-use Symfony\Component\HtmlSanitizer\HtmlSanitizerConfig;
 
 class MailController extends AbstractController
 {
     private ValidatorInterface $validator;
-    private HtmlSanitizer $sanitizer;
 
     public function __construct(ValidatorInterface $validator)
     {
         $this->validator = $validator;
-        $config = (new HtmlSanitizerConfig())
-            ->allowSafeElements() // Permite etiquetas seguras como <p>, <br>, <strong>, etc.
-            ->allowStaticElements(); // Permite elementos estáticos como <img> con src seguro
-        $this->sanitizer = new HtmlSanitizer($config);
-    }
-
-    private function configureTransport(string $accessToken, string $tenantId, string $username): Transport
-    {
-        $dsn = sprintf(
-            '%s&username=%s&password=%s&tenant_id=%s',
-            $_ENV['MAILER_DSN'],
-            urlencode($username),
-            urlencode($accessToken),
-            urlencode($tenantId)
-        );
-        return Transport::fromDsn($dsn);
     }
 
     #[Route('/mail/send', name: 'mail_send', methods: ['POST'])]
@@ -44,20 +22,34 @@ class MailController extends AbstractController
     {
         $data = json_decode($request->getContent(), true);
 
+        // Validar JSON
         if (!$data) {
-            return new JsonResponse(['error' => 'JSON inválido'], 400);
+            return new JsonResponse([
+                'status' => 'error',
+                'code' => 400,
+                'message' => 'JSON inválido o mal formado'
+            ], 400);
         }
 
-        // Validar campos mínimos
-        foreach (['subject', 'html', 'from', 'to', 'accessToken', 'tenant_id'] as $field) {
-            if (empty($data[$field])) {
-                return new JsonResponse(['error' => "Campo '$field' es requerido"], 400);
+        // Validar campos requeridos
+        $requiredFields = ['subject', 'html', 'from', 'to', 'accessToken', 'tenant_id'];
+        foreach ($requiredFields as $field) {
+            if (!isset($data[$field]) || empty($data[$field])) {
+                return new JsonResponse([
+                    'status' => 'error',
+                    'code' => 400,
+                    'message' => "El campo '$field' es requerido"
+                ], 400);
             }
         }
 
-        // Validar tenant_id contra el permitido (opcional, elimina si aceptas múltiples tenants)
-        if ($data['tenant_id'] !== $_ENV['VALID_TENANT']) {
-            return new JsonResponse(['error' => 'Tenant ID no autorizado'], 403);
+        // Validar tenant_id
+        if ($data['tenant_id'] !== ($_ENV['VALID_TENANT'] ?? $data['tenant_id'])) {
+            return new JsonResponse([
+                'status' => 'error',
+                'code' => 403,
+                'message' => 'Tenant ID no autorizado'
+            ], 403);
         }
 
         // Validar correos
@@ -66,39 +58,37 @@ class MailController extends AbstractController
         foreach ([$data['from']] as $recipient) {
             $errors = $this->validator->validate($recipient, $emailConstraint);
             if (count($errors) > 0) {
-                return new JsonResponse(['error' => "Formato de correo inválido en 'from'"], 400);
+                return new JsonResponse([
+                    'status' => 'error',
+                    'code' => 400,
+                    'message' => "Formato de correo inválido en 'from': $recipient"
+                ], 400);
             }
         }
         foreach ($to as $recipient) {
             $errors = $this->validator->validate($recipient, $emailConstraint);
             if (count($errors) > 0) {
-                return new JsonResponse(['error' => "Formato de correo inválido en '$recipient'"], 400);
+                return new JsonResponse([
+                    'status' => 'error',
+                    'code' => 400,
+                    'message' => "Formato de correo inválido en 'to': $recipient"
+                ], 400);
             }
         }
 
-        try {
-            $transport = $this->configureTransport($data['accessToken'], $data['tenant_id'], $data['from']);
-            $mailer = new Mailer($transport);
-
-            $email = (new Email())
-                ->from($data['from'])
-                ->to(...$to)
-                ->subject($data['subject'])
-                ->html($this->sanitizer->sanitize($data['html']));
-
-            $mailer->send($email);
-
-            return new JsonResponse(['status' => 'Correo enviado correctamente']);
-        } catch (\Symfony\Component\Mailer\Exception\TransportExceptionInterface $e) {
-            return new JsonResponse([
-                'error' => 'Error de transporte (posiblemente token inválido)',
-                'message' => $e->getMessage()
-            ], 400);
-        } catch (\Exception $e) {
-            return new JsonResponse([
-                'error' => 'Error general enviando correo',
-                'message' => $e->getMessage()
-            ], 500);
-        }
+        // Devolver los datos recibidos
+        return new JsonResponse([
+            'status' => 'success',
+            'code' => 200,
+            'message' => 'Datos recibidos correctamente',
+            'data' => [
+                'subject' => $data['subject'],
+                'html' => $data['html'],
+                'from' => $data['from'],
+                'to' => $to,
+                'tenant_id' => $data['tenant_id'],
+                'accessToken' => substr($data['accessToken'], 0, 20) . '...' // Truncado por seguridad
+            ]
+        ], 200);
     }
 }
