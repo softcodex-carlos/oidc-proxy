@@ -39,6 +39,7 @@ class ComposerStaticInit591de4360d03b3fa28ba2cf437ee37d1
             'Symfony\\Component\\HttpKernel\\' => 29,
             'Symfony\\Component\\HttpFoundation\\' => 33,
             'Symfony\\Component\\HttpClient\\' => 29,
+            'Symfony\\Component\\HtmlSanitizer\\' => 32,
             'Symfony\\Component\\Finder\\' => 25,
             'Symfony\\Component\\Filesystem\\' => 29,
             'Symfony\\Component\\EventDispatcher\\' => 34,
@@ -62,8 +63,13 @@ class ComposerStaticInit591de4360d03b3fa28ba2cf437ee37d1
         array (
             'OidcProxy\\' => 10,
         ),
+        'M' => 
+        array (
+            'Masterminds\\' => 12,
+        ),
         'L' => 
         array (
+            'League\\Uri\\' => 11,
             'League\\OAuth2\\Client\\' => 21,
         ),
         'G' => 
@@ -159,6 +165,10 @@ class ComposerStaticInit591de4360d03b3fa28ba2cf437ee37d1
         array (
             0 => __DIR__ . '/..' . '/symfony/http-client',
         ),
+        'Symfony\\Component\\HtmlSanitizer\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/symfony/html-sanitizer',
+        ),
         'Symfony\\Component\\Finder\\' => 
         array (
             0 => __DIR__ . '/..' . '/symfony/finder',
@@ -223,6 +233,15 @@ class ComposerStaticInit591de4360d03b3fa28ba2cf437ee37d1
         'OidcProxy\\' => 
         array (
             0 => __DIR__ . '/../..' . '/src',
+        ),
+        'Masterminds\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/masterminds/html5/src',
+        ),
+        'League\\Uri\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/league/uri',
+            1 => __DIR__ . '/..' . '/league/uri-interfaces',
         ),
         'League\\OAuth2\\Client\\' => 
         array (
