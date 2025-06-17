@@ -7,5 +7,26 @@ services:
         resource: '../src/*'
         exclude: '../src/{DependencyInjection,Entity,Migrations,Tests,Kernel.php}'
 
-    Symfony\Component\Mailer\MailerInterface:
-        alias: Symfony\Component\Mailer\Mailer
+    League\OAuth2\Client\Provider\GenericProvider:
+        class: Thenetworg\OAuth2\Client\Provider\Azure
+        arguments:
+            $options:
+                clientId: '%env(CLIENT_ID)%'
+                clientSecret: '%env(CLIENT_SECRET)%'
+                tenant: '%env(VALID_TENANT)%'
+                urlAuthorize: 'https://login.microsoftonline.com/%env(VALID_TENANT)%/oauth2/v2.0/authorize'
+                urlAccessToken: 'https://login.microsoftonline.com/%env(VALID_TENANT)%/oauth2/v2.0/token'
+                urlResourceOwnerDetails: ''
+                scopes: ['https://graph.microsoft.com/Mail.Send']
+
+    Symfony\Component\Mailer\Transport\TransportInterface:
+        class: Symfony\Component\Mailer\Transport\Smtp\SmtpTransport
+        arguments:
+            $stream: '@Symfony\Component\Mailer\Transport\Smtp\Stream\SocketStream'
+            $authenticator: '@Symfony\Component\Mailer\Transport\Smtp\Auth\XOAuth2Authenticator'
+            $eventDispatcher: '@event_dispatcher'
+            $logger: '@logger'
+
+    Symfony\Component\Mailer\Transport\Smtp\Auth\XOAuth2Authenticator:
+        arguments:
+            $provider: '@League\OAuth2\Client\Provider\GenericProvider'
