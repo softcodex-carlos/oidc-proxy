@@ -6,7 +6,7 @@ use Doctrine\ORM\Mapping as ORM;
 use DateTimeInterface;
 
 #[ORM\Entity(repositoryClass: 'App\Repository\ProxyLogsRepository')]
-#[ORM\Table(name: 'proxy_logs')] // La tabla se llamará "proxy_logs"
+#[ORM\Table(name: 'proxy_logs')]
 class ProxyLogs
 {
     #[ORM\Id]
@@ -44,13 +44,10 @@ class ProxyLogs
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $errorMessage;
 
-    // Constructor para inicializar el timestamp
     public function __construct()
     {
-        $this->timestamp = new \DateTime(); // Por defecto, se establece la fecha y hora actual
+        $this->timestamp = new \DateTime();
     }
-
-    // Getters y Setters...
 
     public function getId(): ?int
     {
