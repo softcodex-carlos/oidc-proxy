@@ -16,7 +16,8 @@
         "symfony/cache": "^7.3",
         "symfony/mailer": "^7.3",
         "symfony/html-sanitizer": "^7.3",
-        "thenetworg/oauth2-azure": "^2.2"
+        "thenetworg/oauth2-azure": "^2.2",
+        "symfony/orm-pack": "^2.4"
     },
     "autoload": {
         "psr-4": {
